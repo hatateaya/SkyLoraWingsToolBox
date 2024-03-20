@@ -82,9 +82,21 @@ namespace LoraTool
                 MessageBox.Show("模块未连接！", "无法发送信息", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
-            serial.SendString(sendTextBox.Text);
-            ShowText("发",sendTextBox.Text);
-            sendTextBox.Text = "";
+            try
+            {
+                serial.SendString(sendTextBox.Text);
+                ShowText("发", sendTextBox.Text);
+                sendTextBox.Text = "";
+            }
+            catch
+            {
+                serial?.Close();
+                statusLabel.Text = "状态：未连接";
+                serial = null;
+                ShowText("状态", "模块已断开。");
+                MessageBox.Show("模块连接异常！", "发送信息失败", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+
         }
 
         private void sendTextBox_KeyDown(object sender, KeyEventArgs e)
