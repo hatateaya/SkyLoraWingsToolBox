@@ -1,4 +1,6 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace LoraTool
 {
@@ -20,26 +22,33 @@ namespace LoraTool
         {
             foreach (var name in Serial.GetPortNames())
             {
-                var tmpSerial = new Serial(name, 9600, (str) => { });
-                tmpSerial.recieveAction = (str) =>
+                try
                 {
-                    serial = tmpSerial;
-                    SerialInitalized();
-                };
-                tmpSerial.SendData(new byte[] { 0x00, 0x00, 0x01 });
-                Program.SetTimeout(100, () =>
-                {
-                    if (serial != tmpSerial)
+                    var tmpSerial = new Serial(name, 9600, (str) => { });
+                    tmpSerial.recieveAction = (str) =>
                     {
-                        tmpSerial.Close();
-                    }
-                });
+                        serial = tmpSerial;
+                        SerialInitalized();
+                    };
+                    tmpSerial.SendData(new byte[] { 0x00, 0x00, 0x01 });
+                    Program.SetTimeout(100, () =>
+                    {
+                        if (serial != tmpSerial)
+                        {
+                            tmpSerial.Close();
+                        }
+                    });
+                }
+                catch(Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
             }
             Program.SetTimeout(200, () =>
             {
                 if (serial == null)
                 {
-                    MessageBox.Show("请插入SkyLoraWings模块，并且将MD0短接。");
+                    MessageBox.Show("请插入SkyLoraWings模块，并且将MD0短接！","模块未成功连接",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
                 }
             });
         }
@@ -47,18 +56,21 @@ namespace LoraTool
         private void SerialInitalized()
         {
             statusLabel.Text = "状态：已连接";
-            textBox.AppendText("串口已连接\r\n");
             serial.recieveAction = SerialRecieve;
-            textBox.AppendText("请解除短接MD0！\r\n");
+            ShowText("状态", "模块已连接。请解除短接MD0");
         }
 
         private void SerialRecieve(string str)
         {
-            textBox.AppendText(str + "\r\n");
+            ShowText("收", str);
         }
 
         private void connectButton_Click(object sender, System.EventArgs e)
         {
+            serial?.Close();
+            statusLabel.Text = "状态：未连接";
+            serial = null;
+            ShowText("状态", "模块已断开。");
             SerialInitalize();
         }
 
@@ -66,11 +78,11 @@ namespace LoraTool
         {
             if (serial == null)
             {
-                MessageBox.Show("串口未连接！");
+                MessageBox.Show("模块未连接！", "无法发送信息", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
             serial.SendString(sendTextBox.Text);
-            textBox.AppendText(sendTextBox.Text + "\r\n");
+            ShowText("发",sendTextBox.Text);
             sendTextBox.Text = "";
         }
 
@@ -78,8 +90,22 @@ namespace LoraTool
         {
             if (e.KeyCode == Keys.Enter)
             {
-                sendButton_Click(new object(), new System.EventArgs());
+                sendButton_Click(new object(), new EventArgs());
             }
+        }
+
+        private void ShowText(string mode,string text)
+        {
+            textBox.AppendText($"{DateTime.Now.ToShortTimeString()} [{mode}] {text}\r\n");
+        }
+
+        private void helpButton_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(@"您应当将SkyLoraWings模块插入计算机并在短接MD0时打开本程序。
+在程序与模块已成功连接后，您应解除短接MD0。
+您可以通过在文本框输入信息并回车来发送信息。
+当您正确配置时，发出信息时模块会闪灯一次。
+如果在您发出消息后又收到了截短的您发送的消息，这说明您没有解除短接MD0。","帮助",MessageBoxButtons.OK,MessageBoxIcon.Information);
         }
     }
 }
