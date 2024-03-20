@@ -55,8 +55,9 @@ namespace LoraTool
 
         private void SerialInitalized()
         {
+            serial.SendData(new byte[] { 0x80, 0x0b,0x01,0x68,0x65,0x69,0x62,0x61,0x69,0x6c,0x6f,0x76,0x65,0x73,0x61,0x77,0x61,0x6b,0x6f});
             statusLabel.Text = "状态：已连接";
-            serial.recieveAction = SerialRecieve;
+            serial.recieveAction = (string str) => { serial.recieveAction = SerialRecieve; };
             ShowText("状态", "模块已连接。请解除短接MD0");
         }
 
