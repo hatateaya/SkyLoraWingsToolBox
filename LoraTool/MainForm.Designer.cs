@@ -75,9 +75,9 @@
             // 
             // sendButton
             // 
-            this.sendButton.Location = new System.Drawing.Point(356, 380);
+            this.sendButton.Location = new System.Drawing.Point(357, 384);
             this.sendButton.Name = "sendButton";
-            this.sendButton.Size = new System.Drawing.Size(64, 40);
+            this.sendButton.Size = new System.Drawing.Size(64, 32);
             this.sendButton.TabIndex = 1;
             this.sendButton.Text = "发送";
             this.sendButton.UseVisualStyleBackColor = true;
